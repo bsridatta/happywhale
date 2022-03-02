@@ -1,16 +1,10 @@
-#!/usr/bin/env python
+import setuptools
 
-from setuptools import setup, find_packages
-
-setup(
-    name='project',
-    version='0.0.0',
-    description='Describe Your Cool Project',
-    author='',
-    author_email='',
-    # REPLACE WITH YOUR OWN GITHUB PROJECT LINK
-    url='https://github.com/PyTorchLightning/pytorch-lightning-conference-seed',
-    install_requires=['pytorch-lightning'],
-    packages=find_packages(),
+setuptools.setup(
+    name="bsridatta",
+    version="0.0.1",
+    author="Sri Datta Budaraju",
+    author_email="b.sridatta@gmail.com",
+    packages=setuptools.find_packages(),
+    python_requires=">=3.8",
 )
-
