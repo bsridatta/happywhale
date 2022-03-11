@@ -49,7 +49,7 @@ def main():
 
     trainer = pl.Trainer(
         gpus=device_count() * int(opt.use_gpu),
-        fast_dev_run=not opt.fast_dev_run,
+        fast_dev_run=opt.fast_dev_run,
         max_epochs=opt.epochs,
         callbacks=[checkpoint_callback, backbone_freeze, lr_monitor],
         logger=logger,
@@ -58,8 +58,8 @@ def main():
         # resume_from_checkpoint=opt.resume_ckpt,
         # log_every_n_steps=1,
     )
-    model = WhaleNet(opt)
 
+    model = WhaleNet(opt)
     if opt.load_weights:
         model = model.load_from_checkpoint(opt.load_weights, strict=False)
 
