@@ -97,10 +97,10 @@ def get_argparser():
     parser.add_argument('--precision', default=32, type=int,
                         help='flot precision')
 
-    parser.add_argument('--margin', default=28.6, type=int,
+    parser.add_argument('--margin', default=28.6, type=float,
                         help='flot precision')
 
-    parser.add_argument('--scale', default=64, type=int,
+    parser.add_argument('--scale', default=64, type=float,
                         help='flot precision')
 
 
