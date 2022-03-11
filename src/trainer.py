@@ -12,7 +12,10 @@ class WhaleNet(pl.LightningModule):
         self.opt = opt
         self.model = EfficientNet(embedding_size=opt.embedding_size)
         self.loss_fn = losses.ArcFaceLoss(
-            embedding_size=opt.embedding_size, num_classes=opt.n_class
+            embedding_size=opt.embedding_size,
+            num_classes=opt.n_class,
+            margin=opt.margin,
+            scale=opt.scale,
         )  # TODO: class weights
 
     def forward(self, x):
@@ -41,6 +44,7 @@ class WhaleNet(pl.LightningModule):
 
     # def test_step(self, *args, **kwargs):
     #     return None
+
 
 class BackboneFreeze(BaseFinetuning):
     def __init__(self, train_bn=False):

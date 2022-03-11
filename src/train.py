@@ -97,6 +97,12 @@ def get_argparser():
     parser.add_argument('--precision', default=32, type=int,
                         help='flot precision')
 
+    parser.add_argument('--margin', default=28.6, type=int,
+                        help='flot precision')
+
+    parser.add_argument('--scale', default=64, type=int,
+                        help='flot precision')
+
 
     # data files
     parser.add_argument('--data_root', default=f"{os.environ['HOME']}/lab/data/", type=str,
