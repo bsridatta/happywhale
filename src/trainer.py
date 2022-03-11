@@ -9,6 +9,8 @@ from pytorch_lightning.callbacks.finetuning import BaseFinetuning
 class WhaleNet(pl.LightningModule):
     def __init__(self, opt, **kwargs) -> None:
         super().__init__()
+        self.save_hyperparameters()
+
         self.opt = opt
         self.model = EfficientNet(embedding_size=opt.embedding_size)
         self.loss_fn = losses.ArcFaceLoss(
