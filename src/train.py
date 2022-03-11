@@ -61,7 +61,8 @@ def main():
 
     model = WhaleNet(opt)
     if opt.load_weights:
-        model = model.load_from_checkpoint(opt.load_weights, strict=False)
+        ckpt = torch.load(opt.load_weights)
+        model.load_state_dict(ckpt)
 
     if not opt.eval_run:
         trainer.fit(model, train_loader, val_loader)
