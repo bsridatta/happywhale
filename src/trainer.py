@@ -50,7 +50,7 @@ class WhaleNet(pl.LightningModule):
 
         output = {'embeddings': embeddings}
 
-        if "individual_id" in batch:
+        if "individual_id_org" in batch:
             output['labels'] = batch["individual_id"]
 
         return output

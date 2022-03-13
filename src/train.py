@@ -37,6 +37,7 @@ def main():
         logger=logger,
         precision=opt.precision,
         auto_lr_find=True,
+        limit_predict_batches=opt.limit_predict_batches,
         # resume_from_checkpoint=opt.resume_ckpt,
         # log_every_n_steps=1,
     )
@@ -98,14 +99,14 @@ def get_argparser():
                         help='learning rate')
     parser.add_argument('--fast_dev_run', default=False, type=lambda x: (str(x).lower() == 'true'),
                         help='run all methods once to check integrity')
-    parser.add_argument('--img_size', default=512, type=int,
+    parser.add_argument('--img_size', default=4, type=int,
                         help='change image to img_size before passing it as input to the model')
     parser.add_argument('--n_class', default=15587, type=int,
                         help='class in the training data')
     parser.add_argument('--embedding_size', default=512, type=int,
                         help='final embedding')
     parser.add_argument('--precision', default=32, type=int,
-                        help='flot precision')
+                        help='float precision')
 
     # arcface
     parser.add_argument('--margin', default=28.6, type=float,
@@ -117,6 +118,9 @@ def get_argparser():
 
     parser.add_argument('--run_type', default="test", type=str,
                         help='enable gpu if available')
+    parser.add_argument('--limit_predict_batches', default=1.0, type=float,
+                        help='enable gpu if available')
+
 
     # additional training
     parser.add_argument('--resume_ckpt', default=None, type=str,

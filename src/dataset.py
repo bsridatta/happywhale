@@ -1,3 +1,4 @@
+from re import I
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -46,12 +47,16 @@ class Whales(Dataset):
         # image augmentations
         # no_augment, just pre-processing for validation and test
         if no_augment:
-            self.augmentations = albumentations.Compose(
-                [
-                    # albumentations.Resize(img_size, img_size, always_apply=True),
-                    albumentations.Normalize(always_apply=True),
-                ]
+            augs = []
+            if img_size != 512:
+                augs.append(
+                    albumentations.Resize(img_size, img_size, always_apply=True)
+                )
+            augs.append(
+                albumentations.Normalize(always_apply=True),
             )
+
+            self.augmentations = albumentations.Compose(augs)
         # else apply augmentations for train
         else:
             self.augmentations = albumentations.Compose(
@@ -69,6 +74,7 @@ class Whales(Dataset):
         data = self.metadata.iloc[idx]
         sample = {"image_id": data.image}
 
+        # just to exclude test csv which has no meta data
         if "cat_id" in data and "species" in data:
             sample["individual_id"] = data.cat_id
             sample["individual_id_org"] = data.individual_id
@@ -94,6 +100,7 @@ if __name__ == "__main__":
     dataset = Whales(folds=[4], no_augment=True)
     print(dataset[0]["image"].shape)
     print(dataset[0].keys())
+    print(dataset[0]['individual_id_org'])
 
     # dataset = Whales(folds=[], no_augment=True)
     # print(dataset[1]["image"].shape)

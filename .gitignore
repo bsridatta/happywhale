@@ -19,6 +19,7 @@ tests/tests_tt_dir/
 processed/
 raw/
 ckpts/
+*.pt
 #wandb stuff
 wandb/
 whale_kaggle/

@@ -11,7 +11,7 @@ def inference(opt, model, trainer):
 
     outputs = trainer.predict(model, reference_loader)
     reference_embeddings = torch.cat([batch_out["embeddings"] for batch_out in outputs])
-    # reference_labels = torch.cat([batch_out["labels"] for batch_out in outputs])
+    reference_labels = torch.cat([batch_out["labels"] for batch_out in outputs])
     # reference_embeddings = reference_embeddings[:3]  # debug
 
     outputs = trainer.predict(model, query_loader)
@@ -19,25 +19,29 @@ def inference(opt, model, trainer):
     # query_embeddings = query_embeddings[:2]  # debug
     del outputs
 
-    knn_func = FaissKNN(index_init_fn=faiss.IndexFlatIP, gpus=[0, 1, 2])
-    distances, indices = knn_func(
-        query_embeddings, opt.k_nn, reference_embeddings, False
-    )
+    torch.save(reference_embeddings, "reference_embeddings.pt")
+    torch.save(reference_labels, "reference_labels.pt")
+    torch.save(query_embeddings, "query_embeddings.pt")
 
-    print("indices", indices.shape)
-    print("distances", distances.shape)
+    # knn_func = FaissKNN(index_init_fn=faiss.IndexFlatIP)
+    # distances, indices = knn_func(
+    #     query_embeddings, opt.k_nn, reference_embeddings, False
+    # )
 
-    acc_calc = AccuracyCalculator(
-        include=(),
-        exclude=(),
-        avg_of_avgs=False,
-        return_per_class=False,
-        k=None,
-        label_comparison_fn=None,
-        device=None,
-        knn_func=None,
-        kmeans_func=None,
-    )
+    # print("indices", indices.shape)
+    # print("distances", distances.shape)
+
+    # acc_calc = AccuracyCalculator(
+    #     include=(),
+    #     exclude=(),
+    #     avg_of_avgs=False,
+    #     return_per_class=False,
+    #     k=None,
+    #     label_comparison_fn=None,
+    #     device=None,
+    #     knn_func=None,
+    #     kmeans_func=None,
+    # )
 
 
 def get_loaders(opt):
@@ -56,6 +60,7 @@ def get_loaders(opt):
             Whales(
                 folds=[0, 1, 2, 3],
                 no_augment=True,
+                data_root=opt.data_root,
                 image_path=opt.train_image_path,
                 csv_path=opt.train_csv_path,
             ),
@@ -66,6 +71,7 @@ def get_loaders(opt):
             Whales(
                 folds=[4],
                 no_augment=True,
+                data_root=opt.data_root,
                 image_path=opt.train_image_path,
                 csv_path=opt.train_csv_path,
             ),
@@ -77,6 +83,7 @@ def get_loaders(opt):
             Whales(
                 folds=[0, 1, 2, 3, 4],
                 no_augment=True,
+                data_root=opt.data_root,
                 image_path=opt.train_image_path,
                 csv_path=opt.train_csv_path,
             ),
@@ -87,6 +94,7 @@ def get_loaders(opt):
             Whales(
                 folds=[],
                 no_augment=True,
+                data_root=opt.data_root,
                 image_path=opt.test_image_path,
                 csv_path=opt.test_csv_path,
             ),
