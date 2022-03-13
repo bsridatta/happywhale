@@ -8,31 +8,13 @@ from torch.cuda import device_count
 from dataset import Whales
 from trainer import WhaleNet, BackboneFreeze
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
+from test import inference
 
 
 def main():
     parser = get_argparser()
     opt = parser.parse_args()
     pl.seed_everything(opt.seed)
-
-    train_loader = torch.utils.data.DataLoader(
-        Whales(
-            folds=[0, 1, 2, 3],
-            is_train=True,
-            **vars(opt),
-        ),
-        batch_size=opt.batch_size,
-        num_workers=opt.num_workers,
-        pin_memory=opt.pin_memory,
-        shuffle=True,
-    )
-    val_loader = torch.utils.data.DataLoader(
-        Whales(folds=[4], is_train=True, **vars(opt)),
-        batch_size=opt.batch_size,
-        num_workers=opt.num_workers,
-        pin_memory=opt.pin_memory,
-        shuffle=False,
-    )
 
     logger = WandbLogger(project="whale_kaggle", offline=False, log_model="all")
     logger.log_hyperparams(opt)
@@ -62,18 +44,46 @@ def main():
     model = WhaleNet(opt)
     if opt.load_weights:
         ckpt = torch.load(opt.load_weights)
-        model.load_state_dict(ckpt['state_dict'])
+        model.load_state_dict(ckpt["state_dict"])
 
-    if not opt.eval_run:
+    if opt.run_type == "train":
+        train_loader, val_loader = get_loaders(opt)
         trainer.fit(model, train_loader, val_loader)
     else:
-        # trainer.evaluating
-        pass
+        inference(opt, model, trainer)
 
     print(
         f"Best model @ {trainer.checkpoint_callback.best_model_score}: {trainer.checkpoint_callback.best_model_path}"
     )
 
+
+def get_loaders(opt):
+    train_loader = torch.utils.data.DataLoader(
+        Whales(
+            folds=[0, 1, 2, 3],
+            image_path=opt.train_image_path,
+            csv_path=opt.train_csv_path,
+        ),
+        batch_size=opt.batch_size,
+        num_workers=opt.num_workers,
+        pin_memory=opt.pin_memory,
+        shuffle=True,
+    )
+
+    val_loader = torch.utils.data.DataLoader(
+        Whales(
+            folds=[4],
+            no_augment=True,
+            image_path=opt.train_image_path,
+            csv_path=opt.train_csv_path,
+        ),
+        batch_size=opt.batch_size,
+        num_workers=opt.num_workers,
+        pin_memory=opt.pin_memory,
+        shuffle=False,
+    )
+
+    return train_loader, val_loader
 
 def get_argparser():
     parser = ArgumentParser()
@@ -82,11 +92,11 @@ def get_argparser():
     # training specific
     parser.add_argument('--epochs', default=2, type=int,
                         help='number of epochs to train')
-    parser.add_argument('--batch_size', default=4, type=int,
+    parser.add_argument('--batch_size', default=2, type=int,
                         help='number of samples per step, have more than one for batch norm')
     parser.add_argument('--lr', default=3e-4, type=float,
                         help='learning rate')
-    parser.add_argument('--fast_dev_run', default=True, type=lambda x: (str(x).lower() == 'true'),
+    parser.add_argument('--fast_dev_run', default=False, type=lambda x: (str(x).lower() == 'true'),
                         help='run all methods once to check integrity')
     parser.add_argument('--img_size', default=512, type=int,
                         help='change image to img_size before passing it as input to the model')
@@ -97,33 +107,35 @@ def get_argparser():
     parser.add_argument('--precision', default=32, type=int,
                         help='flot precision')
 
+    # arcface
     parser.add_argument('--margin', default=28.6, type=float,
                         help='flot precision')
-
     parser.add_argument('--scale', default=64, type=float,
                         help='flot precision')
+    parser.add_argument('--k_nn', default=5, type=float,
+                        help='flot precision')
 
+    parser.add_argument('--run_type', default="test", type=str,
+                        help='enable gpu if available')
+
+    # additional training
+    parser.add_argument('--resume_ckpt', default=None, type=str,
+                        help='wandb checkpoint reference')
+    parser.add_argument('--load_weights', default=None, type=str,
+                        help='wandb checkpoint reference')
 
     # data files
     parser.add_argument('--data_root', default=f"{os.environ['HOME']}/lab/data/", type=str,
                         help='abs path to training data')
     parser.add_argument('--train_image_path', default=f"train_images/", type=str,
                         help='path')
-    parser.add_argument('--test_image_path', default=f"test_images", type=str,
+    parser.add_argument('--test_image_path', default=f"test_images/", type=str,
                         help='path')
     parser.add_argument('--train_csv_path', default=f"train_equal_species_ids.csv", type=str,
                         help='path')
     parser.add_argument('--test_csv_path', default=f"sample_submission.csv", type=str,
                         help='path')
 
-    parser.add_argument('--resume_ckpt', default=None, type=str,
-                        help='wandb checkpoint reference')
-
-    parser.add_argument('--load_weights', default=None, type=str,
-                        help='wandb checkpoint reference')
-
-    parser.add_argument('--eval_run', default=False, type=lambda x: (str(x).lower() == 'true'),
-                        help='enable gpu if available')
     # output
     # device
     parser.add_argument('--use_gpu', default=True, type=lambda x: (str(x).lower() == 'true'),

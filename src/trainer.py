@@ -33,6 +33,7 @@ class WhaleNet(pl.LightningModule):
         inp, label = batch["image"], batch["individual_id"]
         out = self.model(inp)  # embedding
         loss = self.loss_fn(out, label)
+
         self.log("val_loss", loss, on_epoch=True, batch_size=len(batch))
         return loss
 
@@ -42,10 +43,17 @@ class WhaleNet(pl.LightningModule):
             filter(lambda p: p.requires_grad, self.parameters()), lr=self.opt.lr
         )
 
-    # def test_step(self, *args, **kwargs):
-    #     return None
+    def predict_step(self, batch, batch_idx):
 
+        inp = batch["image"]
+        embeddings = self.model(inp)
 
+        output = {'embeddings': embeddings}
+
+        if "individual_id" in batch:
+            output['labels'] = batch["individual_id"]
+
+        return output
 class BackboneFreeze(BaseFinetuning):
     def __init__(self, train_bn=False):
         super().__init__()
