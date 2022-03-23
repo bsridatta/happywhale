@@ -7,8 +7,8 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.cuda import device_count
 from dataset import Whales
 from trainer import WhaleNet, BackboneFreeze
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 from test import inference
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
         gpus=device_count() * int(opt.use_gpu),
         fast_dev_run=opt.fast_dev_run,
         max_epochs=opt.epochs,
-        callbacks=[checkpoint_callback, backbone_freeze, lr_monitor],
+        callbacks=[checkpoint_callback, lr_monitor],  # backbone_freeze
         logger=logger,
         precision=opt.precision,
         auto_lr_find=True,
@@ -62,6 +62,7 @@ def get_loaders(opt):
     train_loader = torch.utils.data.DataLoader(
         Whales(
             folds=[0, 1, 2, 3],
+            data_root=opt.data_root,
             image_path=opt.train_image_path,
             csv_path=opt.train_csv_path,
         ),
@@ -75,6 +76,7 @@ def get_loaders(opt):
         Whales(
             folds=[4],
             no_augment=True,
+            data_root=opt.data_root,
             image_path=opt.train_image_path,
             csv_path=opt.train_csv_path,
         ),
@@ -85,6 +87,7 @@ def get_loaders(opt):
     )
 
     return train_loader, val_loader
+
 
 def get_argparser():
     parser = ArgumentParser()

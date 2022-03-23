@@ -46,26 +46,23 @@ class Whales(Dataset):
 
         # image augmentations
         # no_augment, just pre-processing for validation and test
+        augs = []
+        if img_size != 512:
+            augs.append(albumentations.Resize(img_size, img_size, always_apply=True))
+
         if no_augment:
-            augs = []
-            if img_size != 512:
-                augs.append(
-                    albumentations.Resize(img_size, img_size, always_apply=True)
-                )
             augs.append(
                 albumentations.Normalize(always_apply=True),
             )
-
-            self.augmentations = albumentations.Compose(augs)
         # else apply augmentations for train
         else:
-            self.augmentations = albumentations.Compose(
+            augs.extend(
                 [
-                    # albumentations.Resize(img_size, img_size, always_apply=True),
                     albumentations.ShiftScaleRotate(rotate_limit=40, p=0.9),
                     albumentations.Normalize(always_apply=True),
                 ]
             )
+        self.augmentations = albumentations.Compose(augs)
 
     def __len__(self):
         return len(self.metadata.image)
@@ -100,7 +97,7 @@ if __name__ == "__main__":
     dataset = Whales(folds=[4], no_augment=True)
     print(dataset[0]["image"].shape)
     print(dataset[0].keys())
-    print(dataset[0]['individual_id_org'])
+    print(dataset[0]["individual_id_org"])
 
     # dataset = Whales(folds=[], no_augment=True)
     # print(dataset[1]["image"].shape)
