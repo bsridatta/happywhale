@@ -38,7 +38,7 @@ def main():
         precision=opt.precision,
         auto_lr_find=False,
         limit_predict_batches=opt.limit_predict_batches,
-        stochastic_weight_avg=True,
+        stochastic_weight_avg=False,
         auto_scale_batch_size=None,
         benchmark=True,
         # resume_from_checkpoint=opt.resume_ckpt,

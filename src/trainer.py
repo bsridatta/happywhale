@@ -79,7 +79,7 @@ class WhaleNet(pl.LightningModule):
             "interval": "step",
         }
 
-        return [optimizer], [scheduler]
+        return [optimizer]  # , [scheduler]
 
     def predict_step(self, batch, batch_idx):
 
