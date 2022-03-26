@@ -29,13 +29,13 @@ class EfficientNet(nn.Module):
         self.pooling = GeM()
         # add extra FC layer
         self.embeddings = nn.Sequential(
-            nn.Linear(out_features_backbone, out_features_backbone),
-            nn.BatchNorm1d(out_features_backbone),
-            activation(),
-            nn.Dropout(p=p_dropout),
+            # nn.Linear(out_features_backbone, out_features_backbone),
+            # nn.BatchNorm1d(out_features_backbone),
+            # activation(),
+            # nn.Dropout(p=p_dropout),
             nn.Linear(out_features_backbone, embedding_size),
-            nn.BatchNorm1d(embedding_size),
-            activation(),
+            # nn.BatchNorm1d(embedding_size),
+            # activation(),
         )
 
     def forward(self, x):

@@ -1,8 +1,8 @@
 import torch
 from dataset import Whales
-from pytorch_metric_learning.utils.inference import FaissKNN
+# from pytorch_metric_learning.utils.inference import FaissKNN
 import faiss
-from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
+# from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 
 
 def inference(opt, model, trainer):

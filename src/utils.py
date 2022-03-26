@@ -1,8 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from pathlib import Path
-
+import math
 
 class GeM(nn.Module):
     """Source: https://amaarora.github.io/2020/08/30/gempool.html"""
@@ -23,41 +22,56 @@ class GeM(nn.Module):
     def __repr__(self):
         return f"GeM p={float(self.p.data):.4f}, eps={str(self.eps)}"
 
+    # if opt.wandb_ckpt:
+    #     logger.experiment.log_artifact
+    #     artifact = logger.experiment.use_artifact("b-sridatta/whale_kaggle/" + run, type="model")
+    #     ckpt_path = Path.joinpath(artifact.download(), "model.ckpt")
+    # logger.watch(model, log='all')
 
-# src: https://github.com/lyakaap/Landmark2019-1st-and-3rd-Place-Solution/blob/master/src/modeling/metric_learning.py
 
-
+# https://www.kaggle.com/code/clemchris/pytorch-backfin-convnext-arcface
 class ArcMarginProduct(nn.Module):
-    def __init__(
-        self, in_features, out_features, s=30.0, m=0.50, easy_margin=False, ls_eps=0.0
-    ):
-        """
-        in_features: dimension of the input
-        out_features: dimension of the last layer (in our case the classification)
+    r"""Implement of large margin arc distance: :
+    Args:
+        in_features: size of each input sample
+        out_features: size of each output sample
         s: norm of input feature
         m: margin
-        ls_eps: label smoothing"""
+        cos(theta + m)
+    """
 
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        s: float,
+        m: float,
+        easy_margin: bool,
+        ls_eps: float,
+    ):
         super(ArcMarginProduct, self).__init__()
-        self.in_features, self.out_features = in_features, out_features
+        self.in_features = in_features
+        self.out_features = out_features
         self.s = s
         self.m = m
-        self.ls_eps = ls_eps
+        self.ls_eps = ls_eps  # label smoothing
         self.weight = nn.Parameter(torch.FloatTensor(out_features, in_features))
-        # Fills the input `Tensor` with values according to the method described in
-        # `Understanding the difficulty of training deep feedforward neural networks`
-        # Glorot, X. & Bengio, Y. (2010)
-        # using a uniform distribution.
         nn.init.xavier_uniform_(self.weight)
 
         self.easy_margin = easy_margin
-        self.cos_m, self.sin_m = math.cos(m), math.sin(m)
+        self.cos_m = math.cos(m)
+        self.sin_m = math.sin(m)
         self.th = math.cos(math.pi - m)
         self.mm = math.sin(math.pi - m) * m
 
-    def forward(self, input, label):
+    def forward(
+        self, input: torch.Tensor, label: torch.Tensor, device: str = "cuda"
+    ) -> torch.Tensor:
         # --------------------------- cos(theta) & phi(theta) ---------------------
         cosine = F.linear(F.normalize(input), F.normalize(self.weight))
+        # Enable 16 bit precision
+        cosine = cosine.to(torch.float32)
+
         sine = torch.sqrt(1.0 - torch.pow(cosine, 2))
         phi = cosine * self.cos_m - sine * self.sin_m
         if self.easy_margin:
@@ -65,7 +79,8 @@ class ArcMarginProduct(nn.Module):
         else:
             phi = torch.where(cosine > self.th, phi, cosine - self.mm)
         # --------------------------- convert label to one-hot ---------------------
-        one_hot = torch.zeros(cosine.size()).to(device)
+        # one_hot = torch.zeros(cosine.size(), requires_grad=True, device='cuda')
+        one_hot = torch.zeros(cosine.size(), device=device)
         one_hot.scatter_(1, label.view(-1, 1).long(), 1)
         if self.ls_eps > 0:
             one_hot = (1 - self.ls_eps) * one_hot + self.ls_eps / self.out_features
@@ -74,9 +89,3 @@ class ArcMarginProduct(nn.Module):
         output *= self.s
 
         return output
-
-    # if opt.wandb_ckpt:
-    #     logger.experiment.log_artifact
-    #     artifact = logger.experiment.use_artifact("b-sridatta/whale_kaggle/" + run, type="model")
-    #     ckpt_path = Path.joinpath(artifact.download(), "model.ckpt")
-    # logger.watch(model, log='all')

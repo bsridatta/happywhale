@@ -7,7 +7,7 @@ from pytorch_lightning.loggers import WandbLogger
 from torch.cuda import device_count
 from dataset import Whales
 from trainer import WhaleNet, BackboneFreeze
-from test import inference
+from inference import inference
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 
@@ -36,11 +36,16 @@ def main():
         callbacks=[checkpoint_callback, lr_monitor],  # backbone_freeze
         logger=logger,
         precision=opt.precision,
-        auto_lr_find=True,
+        auto_lr_find=False,
         limit_predict_batches=opt.limit_predict_batches,
+        stochastic_weight_avg=True,
+        auto_scale_batch_size=None,
+        benchmark=True,
         # resume_from_checkpoint=opt.resume_ckpt,
         # log_every_n_steps=1,
     )
+    train_loader, val_loader = get_loaders(opt)
+    opt.len_train_loader = len(train_loader)
 
     model = WhaleNet(opt)
     if opt.load_weights:
@@ -48,7 +53,6 @@ def main():
         model.load_state_dict(ckpt["state_dict"])
 
     if opt.run_type == "train":
-        train_loader, val_loader = get_loaders(opt)
         trainer.fit(model, train_loader, val_loader)
     else:
         inference(opt, model, trainer)
@@ -100,7 +104,7 @@ def get_argparser():
                         help='number of samples per step, have more than one for batch norm')
     parser.add_argument('--lr', default=3e-4, type=float,
                         help='learning rate')
-    parser.add_argument('--fast_dev_run', default=False, type=lambda x: (str(x).lower() == 'true'),
+    parser.add_argument('--fast_dev_run', default=True, type=lambda x: (str(x).lower() == 'true'),
                         help='run all methods once to check integrity')
     parser.add_argument('--img_size', default=4, type=int,
                         help='change image to img_size before passing it as input to the model')
@@ -110,6 +114,8 @@ def get_argparser():
                         help='final embedding')
     parser.add_argument('--precision', default=32, type=int,
                         help='float precision')
+    parser.add_argument('--weight_decay', default=1e-6, type=float,
+                        help='flot precision')
 
     # arcface
     parser.add_argument('--margin', default=28.6, type=float,
@@ -118,8 +124,13 @@ def get_argparser():
                         help='flot precision')
     parser.add_argument('--k_nn', default=5, type=float,
                         help='flot precision')
+    parser.add_argument('--easy_margin', default=False, type=bool,
+                        help='flot precision')
+    parser.add_argument('--ls_eps', default=0.0, type=float,
+                        help='flot precision')
 
-    parser.add_argument('--run_type', default="test", type=str,
+
+    parser.add_argument('--run_type', default="train", type=str,
                         help='enable gpu if available')
     parser.add_argument('--limit_predict_batches', default=1.0, type=float,
                         help='enable gpu if available')
