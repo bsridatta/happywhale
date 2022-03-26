@@ -9,7 +9,7 @@ import timm
 class EfficientNet(nn.Module):
     def __init__(
         self,
-        backbone_name: str = "efficientnetv2_rw_m",
+        backbone_name: str = "tf_efficientnet_b4",
         pretrained: bool = True,
         activation: Type[nn.Module] = nn.ReLU,
         p_dropout: float = 0.5,
@@ -50,7 +50,8 @@ if __name__ == "__main__":
     from torchinfo import summary
 
     net = EfficientNet()
-    summary(net, input_size=(4, 3, 500, 500))
-    for param in net.parameters():
-        if not param.requires_grad:
-            print("*")
+    # summary(net, input_size=(4, 3, 500, 500))
+    # for param in net.parameters():
+    #     if not param.requires_grad:
+    #         print("*")
+    print(net)

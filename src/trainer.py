@@ -66,20 +66,20 @@ class WhaleNet(pl.LightningModule):
         optimizer = Adam(
             filter(lambda p: p.requires_grad, self.parameters()),
             lr=self.opt.lr,
-            weight_decay=self.opt.weight_decay,
+            # weight_decay=self.opt.weight_decay,
         )
 
-        scheduler = {
-            "scheduler": lr_scheduler.OneCycleLR(
-                optimizer,
-                self.opt.lr,
-                steps_per_epoch=self.opt.len_train_loader,
-                epochs=self.opt.epochs,
-            ),
-            "interval": "step",
-        }
+        # scheduler = {
+        #     "scheduler": lr_scheduler.OneCycleLR(
+        #         optimizer,
+        #         self.opt.lr,
+        #         steps_per_epoch=self.opt.len_train_loader,
+        #         epochs=self.opt.epochs,
+        #     ),
+        #     "interval": "step",
+        # }
 
-        return [optimizer]  # , [scheduler]
+        return optimizer # [optimizer]  # , [scheduler]
 
     def predict_step(self, batch, batch_idx):
 
