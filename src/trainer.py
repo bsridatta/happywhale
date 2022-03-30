@@ -4,7 +4,7 @@ from models import EfficientNet
 from pytorch_lightning.callbacks.finetuning import BaseFinetuning
 from utils import ArcMarginProduct
 from torch.optim import Adam, lr_scheduler
-
+from timm.optim import create_optimizer_v2
 import torch.nn.functional as F
 
 
@@ -63,12 +63,27 @@ class WhaleNet(pl.LightningModule):
 
     def configure_optimizers(self):
         # self.hparams available because we called self.save_hyperparameters()
-        optimizer = Adam(
-            filter(lambda p: p.requires_grad, self.parameters()),
+        # optimizer = Adam(
+        #     filter(lambda p: p.requires_grad, self.parameters()),
+        #     lr=self.opt.lr,
+        #     # weight_decay=self.opt.weight_decay,
+        # )
+        optimizer = create_optimizer_v2(
+            self.parameters(),
+            opt="adam",
             lr=self.opt.lr,
-            # weight_decay=self.opt.weight_decay,
+            weight_decay=self.opt.weight_decay,
         )
 
+        scheduler = lr_scheduler.OneCycleLR(
+            optimizer,
+            self.opt.lr,
+            steps_per_epoch=self.opt.len_train_loader,
+            epochs=self.opt.epochs,
+        )
+        scheduler = {"scheduler": scheduler, "interval": "step"}
+
+        return [optimizer], [scheduler]
         # scheduler = {
         #     "scheduler": lr_scheduler.OneCycleLR(
         #         optimizer,
@@ -79,7 +94,7 @@ class WhaleNet(pl.LightningModule):
         #     "interval": "step",
         # }
 
-        return optimizer # [optimizer]  # , [scheduler]
+        # return optimizer  # [optimizer]  # , [scheduler]
 
     def predict_step(self, batch, batch_idx):
 

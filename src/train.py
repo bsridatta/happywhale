@@ -118,7 +118,7 @@ def get_argparser():
                         help='flot precision')
 
     # arcface
-    parser.add_argument('--margin', default=28.6, type=float,
+    parser.add_argument('--margin', default=30, type=float,
                         help='flot precision')
     parser.add_argument('--scale', default=64, type=float,
                         help='flot precision')
