@@ -52,6 +52,8 @@ def main():
         ckpt = torch.load(opt.load_weights)
         model.load_state_dict(ckpt["state_dict"])
 
+    logger.watch(model, log="all")
+
     if opt.run_type == "train":
         trainer.fit(model, train_loader, val_loader)
     else:
