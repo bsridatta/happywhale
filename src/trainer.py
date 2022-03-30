@@ -68,13 +68,15 @@ class WhaleNet(pl.LightningModule):
         #     lr=self.opt.lr,
         #     # weight_decay=self.opt.weight_decay,
         # )
-        optimizer = create_optimizer_v2(
-            self.parameters(),
-            opt="adam",
-            lr=self.opt.lr,
-            weight_decay=self.opt.weight_decay,
+        # optimizer = create_optimizer_v2(
+        #     self.parameters(),
+        #     opt="adam",
+        #     lr=self.opt.lr,
+        #     weight_decay=self.opt.weight_decay,
+        # )
+        optimizer = Adam(
+            self.parameters(), lr=self.opt.lr, weight_decay=self.opt.weight_decay
         )
-
         scheduler = lr_scheduler.OneCycleLR(
             optimizer,
             self.opt.lr,
