@@ -47,8 +47,7 @@ class Whales(Dataset):
         # image augmentations
         # no_augment, just pre-processing for validation and test
         augs = []
-        if img_size != 512:
-            augs.append(albumentations.Resize(img_size, img_size, always_apply=True))
+        augs.append(albumentations.Resize(img_size, img_size, always_apply=True))
 
         if no_augment:
             augs.append(

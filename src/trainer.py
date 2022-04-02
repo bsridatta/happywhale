@@ -86,17 +86,6 @@ class WhaleNet(pl.LightningModule):
         scheduler = {"scheduler": scheduler, "interval": "step"}
 
         return [optimizer], [scheduler]
-        # scheduler = {
-        #     "scheduler": lr_scheduler.OneCycleLR(
-        #         optimizer,
-        #         self.opt.lr,
-        #         steps_per_epoch=self.opt.len_train_loader,
-        #         epochs=self.opt.epochs,
-        #     ),
-        #     "interval": "step",
-        # }
-
-        # return optimizer  # [optimizer]  # , [scheduler]
 
     def predict_step(self, batch, batch_idx):
 
